@@ -8,7 +8,10 @@ void main() {
   ) async {
     await tester.pumpWidget(const GaslokaApp());
 
-    expect(find.text('Gasloka'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('login-gasloka-branding')),
+      findsOneWidget,
+    );
     expect(find.text('Masuk ke demo'), findsOneWidget);
     expect(find.textContaining('kata sandi tidak diperiksa'), findsOneWidget);
 

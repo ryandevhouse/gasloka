@@ -43,9 +43,13 @@ class DashboardScreen extends StatelessWidget {
       ),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(
-            'Gasloka',
-            style: TextStyle(fontWeight: FontWeight.w800),
+          title: Image.asset(
+            'assets/branding.png',
+            key: const ValueKey('dashboard-gasloka-branding'),
+            width: 168,
+            height: 50,
+            fit: BoxFit.contain,
+            semanticLabel: 'Gasloka. Pengantaran Andal, Pasokan Terjaga',
           ),
           actions: [
             IconButton(

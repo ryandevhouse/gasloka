@@ -178,24 +178,13 @@ class _BrandMark extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          width: 72,
-          height: 72,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: const Icon(
-            Icons.local_fire_department_rounded,
-            color: Colors.white,
-            size: 42,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Gasloka',
-          style: Theme.of(context).textTheme.titleLarge
-              ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 0.3),
+        Image.asset(
+          'assets/branding.png',
+          key: const ValueKey('login-gasloka-branding'),
+          width: 420,
+          height: 126,
+          fit: BoxFit.contain,
+          semanticLabel: 'Gasloka. Pengantaran Andal, Pasokan Terjaga',
         ),
       ],
     );

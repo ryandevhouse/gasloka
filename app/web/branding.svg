@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 300" role="img" aria-labelledby="title desc">
+  <title id="title">Gasloka Andal</title>
+  <desc id="desc">Perisai dengan tabung gas untuk melambangkan pengantaran yang aman dan terpercaya.</desc>
+  <g transform="translate(30 20)">
+    <circle cx="120" cy="130" r="106" fill="#EAF4F2"/>
+    <path d="M120 38 191 64v62c0 49-29 88-71 109-42-21-71-60-71-109V64z" fill="#fff" stroke="#173B50" stroke-width="10" stroke-linejoin="round"/>
+    <path d="M102 82h36v15h-36z" fill="#F1A23B"/>
+    <rect x="86" y="97" width="68" height="83" rx="17" fill="#167D72"/>
+    <path d="M99 109v57" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".92"/>
+    <path d="M109 97V83h22v14" fill="none" stroke="#173B50" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M104 185h32" stroke="#173B50" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  <text x="290" y="140" fill="#173B50" font-family="Inter, Arial, sans-serif" font-size="72" font-weight="750" letter-spacing="-2">Gasloka</text>
+  <rect x="294" y="166" width="62" height="7" rx="3.5" fill="#167D72"/>
+  <text x="294" y="216" fill="#516A76" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="700" letter-spacing="2">PENGANTARAN ANDAL, PASOKAN TERJAGA</text>
+</svg>
