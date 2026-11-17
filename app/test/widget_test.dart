@@ -19,6 +19,40 @@ void main() {
     expect(find.text('Kelola pengguna'), findsOneWidget);
   });
 
+  testWidgets('login membuka transisi cahaya sebelum dashboard', (
+    tester,
+  ) async {
+    _useTallViewport(tester);
+    await tester.pumpWidget(const GaslokaApp());
+    await tester.enterText(
+      find.byKey(const ValueKey('login-username')),
+      'admin.demo',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('login-password')),
+      'contoh',
+    );
+    final signInButton = find.text('Masuk ke demo');
+    await tester.ensureVisible(signInButton);
+    await tester.tap(signInButton);
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('login-reveal-transition')),
+      findsOneWidget,
+    );
+
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(
+      find.byKey(const ValueKey('login-reveal-transition')),
+      findsOneWidget,
+    );
+
+    await tester.pump(const Duration(milliseconds: 800));
+    expect(find.byKey(const ValueKey('login-reveal-transition')), findsNothing);
+    expect(find.text('Halo, Siti'), findsOneWidget);
+  });
+
   testWidgets('pemilih demo menampilkan dashboard setiap role', (tester) async {
     await tester.pumpWidget(const GaslokaApp());
     await _signInDemo(tester);

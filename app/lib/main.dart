@@ -4,6 +4,7 @@ import 'data/demo_data.dart';
 import 'models/app_user.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/login_screen.dart';
+import 'widgets/login_reveal_transition.dart';
 
 void main() {
   runApp(const GaslokaApp());
@@ -18,11 +19,30 @@ class GaslokaApp extends StatefulWidget {
 
 class _GaslokaAppState extends State<GaslokaApp> {
   AppUser? _currentUser;
+  AppUser? _pendingUser;
   late final List<DemoDelivery> _deliveries = List.of(DemoData.deliveries);
+  final _loginScreenKey = GlobalKey();
 
   void _signInAs(UserRole role) {
     setState(() {
       _currentUser = DemoData.users[role];
+    });
+  }
+
+  void _beginLogin(UserRole role) {
+    final user = DemoData.users[role];
+    if (user == null) {
+      throw StateError('Tidak ada akun demo untuk peran ${role.label}.');
+    }
+    setState(() => _pendingUser = user);
+  }
+
+  void _completeLoginTransition() {
+    final user = _pendingUser;
+    if (user == null) return;
+    setState(() {
+      _currentUser = user;
+      _pendingUser = null;
     });
   }
 
@@ -74,16 +94,35 @@ class _GaslokaAppState extends State<GaslokaApp> {
           ),
         ),
       ),
-      home: _currentUser == null
-          ? LoginScreen(onLogin: _signInAs)
-          : DashboardScreen(
-              user: _currentUser!,
-              onSignOut: _signOut,
-              onRoleSelected: _signInAs,
-              deliveries: _deliveries,
-              onDeliveryAdded: _addDelivery,
-              onDeliveryUpdated: _updateDelivery,
-            ),
+      home: _currentUser != null
+          ? _buildDashboard(_currentUser!)
+          : _pendingUser != null
+          ? Stack(
+              fit: StackFit.expand,
+              children: [
+                _buildDashboard(_pendingUser!),
+                LoginRevealTransition(
+                  key: const ValueKey('login-reveal-transition'),
+                  onCompleted: _completeLoginTransition,
+                  child: LoginScreen(
+                    key: _loginScreenKey,
+                    onLogin: _beginLogin,
+                  ),
+                ),
+              ],
+            )
+          : LoginScreen(key: _loginScreenKey, onLogin: _beginLogin),
+    );
+  }
+
+  Widget _buildDashboard(AppUser user) {
+    return DashboardScreen(
+      user: user,
+      onSignOut: _signOut,
+      onRoleSelected: _signInAs,
+      deliveries: _deliveries,
+      onDeliveryAdded: _addDelivery,
+      onDeliveryUpdated: _updateDelivery,
     );
   }
 }
