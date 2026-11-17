@@ -1,0 +1,672 @@
+import 'package:material_ui/material_ui.dart';
+
+import '../data/demo_data.dart';
+import '../models/app_user.dart';
+
+class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({
+    required this.user,
+    required this.onSignOut,
+    required this.onRoleSelected,
+    super.key,
+  });
+
+  final AppUser user;
+  final VoidCallback onSignOut;
+  final ValueChanged<UserRole> onRoleSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Gasloka',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
+        actions: [
+          PopupMenuButton<UserRole>(
+            tooltip: 'Ganti peran contoh',
+            icon: const Icon(Icons.swap_horiz),
+            onSelected: onRoleSelected,
+            itemBuilder: (context) => UserRole.values
+                .map(
+                  (role) => PopupMenuItem(
+                    key: ValueKey('role-option-${role.name}'),
+                    value: role,
+                    child: Row(
+                      children: [
+                        Icon(role.icon, size: 20),
+                        const SizedBox(width: 10),
+                        Text(role.label),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+          IconButton(
+            tooltip: 'Keluar dari demo',
+            onPressed: onSignOut,
+            icon: const Icon(Icons.logout),
+          ),
+          const SizedBox(width: 4),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+        children: [
+          _UserWelcome(user: user),
+          const SizedBox(height: 18),
+          const _DemoBanner(),
+          const SizedBox(height: 24),
+          _RoleDashboard(role: user.role),
+        ],
+      ),
+    );
+  }
+}
+
+class _UserWelcome extends StatelessWidget {
+  const _UserWelcome({required this.user});
+
+  final AppUser user;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 28,
+          backgroundColor: theme.colorScheme.primaryContainer,
+          foregroundColor: theme.colorScheme.onPrimaryContainer,
+          child: Icon(user.role.icon, size: 28),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Halo, ${user.name}',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(
+                    user.role.icon,
+                    size: 16,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    user.role.label,
+                    key: ValueKey('current-role-${user.role.name}'),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DemoBanner extends StatelessWidget {
+  const _DemoBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF3D9),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.science_outlined, color: Color(0xFF805900)),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Pratinjau dengan data contoh · belum terhubung ke Firebase',
+              style: TextStyle(
+                color: Color(0xFF624600),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RoleDashboard extends StatelessWidget {
+  const _RoleDashboard({required this.role});
+
+  final UserRole role;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (role) {
+      UserRole.admin => const _AdminDashboard(),
+      UserRole.pengawas => const _PengawasDashboard(),
+      UserRole.agen => const _AgenDashboard(),
+      UserRole.driver => const _DriverDashboard(),
+      UserRole.pangkalan => const _PangkalanDashboard(),
+    };
+  }
+}
+
+class _AdminDashboard extends StatelessWidget {
+  const _AdminDashboard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionHeading(
+          title: 'Ringkasan operasional',
+          subtitle: 'Pantau aktivitas Gasloka hari ini.',
+        ),
+        const SizedBox(height: 14),
+        const _StatGrid(
+          items: [
+            _StatItem(
+              'Pengiriman hari ini',
+              '24',
+              Icons.local_shipping_outlined,
+            ),
+            _StatItem('Permintaan baru', '6', Icons.inbox_outlined),
+            _StatItem('Driver tersedia', '8', Icons.person_pin_circle_outlined),
+            _StatItem('Perlu perhatian', '2', Icons.warning_amber_rounded),
+          ],
+        ),
+        const SizedBox(height: 24),
+        const _SectionHeading(title: 'Kelola data'),
+        const SizedBox(height: 12),
+        _ActionCard(
+          icon: Icons.manage_accounts_outlined,
+          title: 'Kelola pengguna',
+          subtitle: 'Admin, Pengawas, Agen, Driver, dan Pangkalan',
+          onTap: () => _showPreviewMessage(context),
+        ),
+        const SizedBox(height: 10),
+        _ActionCard(
+          icon: Icons.price_change_outlined,
+          title: 'Harga per tabung',
+          subtitle: 'Pengaturan contoh hanya untuk Admin',
+          onTap: () => _showPreviewMessage(context),
+        ),
+        const SizedBox(height: 24),
+        const _SectionHeading(title: 'Pengiriman terbaru'),
+        const SizedBox(height: 12),
+        for (final delivery in DemoData.deliveries)
+          _DeliveryCard(delivery: delivery),
+      ],
+    );
+  }
+}
+
+class _PengawasDashboard extends StatelessWidget {
+  const _PengawasDashboard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionHeading(
+          title: 'Pemantauan pengiriman',
+          subtitle: 'Ringkasan status seluruh pengiriman.',
+        ),
+        const SizedBox(height: 14),
+        const _StatGrid(
+          items: [
+            _StatItem('Dalam perjalanan', '8', Icons.local_shipping_outlined),
+            _StatItem('Terkirim', '12', Icons.check_circle_outline),
+            _StatItem('Permintaan baru', '6', Icons.inbox_outlined),
+            _StatItem('Kurang', '2', Icons.warning_amber_rounded),
+          ],
+        ),
+        const SizedBox(height: 24),
+        const _SectionHeading(title: 'Status terkini'),
+        const SizedBox(height: 12),
+        for (final delivery in DemoData.deliveries)
+          _DeliveryCard(delivery: delivery),
+      ],
+    );
+  }
+}
+
+class _AgenDashboard extends StatelessWidget {
+  const _AgenDashboard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionHeading(
+          title: 'Permintaan Pangkalan',
+          subtitle: 'Tinjau permintaan dan siapkan penugasan Driver.',
+        ),
+        const SizedBox(height: 14),
+        const _StatGrid(
+          items: [
+            _StatItem('Perlu ditinjau', '6', Icons.inbox_outlined),
+            _StatItem('Menunggu Driver', '3', Icons.person_search_outlined),
+          ],
+        ),
+        const SizedBox(height: 24),
+        const _SectionHeading(title: 'Permintaan terbaru'),
+        const SizedBox(height: 12),
+        for (final delivery in DemoData.requests)
+          _RequestCard(delivery: delivery),
+      ],
+    );
+  }
+}
+
+class _DriverDashboard extends StatelessWidget {
+  const _DriverDashboard();
+
+  @override
+  Widget build(BuildContext context) {
+    final assignment = DemoData.deliveries.first;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionHeading(
+          title: 'Penugasan saya',
+          subtitle: 'Informasi pengiriman untuk Driver.',
+        ),
+        const SizedBox(height: 14),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Pengiriman aktif',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    _StatusPill(status: assignment.status),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  assignment.baseName,
+                  style: Theme.of(context).textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 6),
+                _IconText(
+                  icon: Icons.location_on_outlined,
+                  text: assignment.address,
+                ),
+                const SizedBox(height: 12),
+                _IconText(
+                  icon: Icons.propane_tank_outlined,
+                  text: '${assignment.cylinderCount} tabung',
+                ),
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showPreviewMessage(context),
+                    icon: const Icon(Icons.assignment_turned_in_outlined),
+                    label: const Text('Lihat detail penugasan'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        const _InfoCard(
+          icon: Icons.photo_camera_front_outlined,
+          title: 'Foto profil Driver',
+          message: 'Foto belum tersedia. Ilustrasi ikon bawaan ditampilkan sementara.',
+        ),
+      ],
+    );
+  }
+}
+
+class _PangkalanDashboard extends StatelessWidget {
+  const _PangkalanDashboard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _SectionHeading(
+          title: 'Pengiriman Pangkalan',
+          subtitle: 'Buat permintaan dan pantau penerimaan tabung.',
+        ),
+        const SizedBox(height: 14),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: () => _showPreviewMessage(context),
+            icon: const Icon(Icons.add),
+            label: const Text('Buat permintaan pengiriman'),
+          ),
+        ),
+        const SizedBox(height: 24),
+        const _SectionHeading(title: 'Riwayat pengiriman'),
+        const SizedBox(height: 12),
+        for (final delivery in DemoData.deliveries)
+          _DeliveryCard(delivery: delivery),
+      ],
+    );
+  }
+}
+
+class _SectionHeading extends StatelessWidget {
+  const _SectionHeading({required this.title, this.subtitle});
+
+  final String title;
+  final String? subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleLarge
+              ?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        if (subtitle != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            subtitle!,
+            style: Theme.of(context).textTheme.bodyMedium
+                ?.copyWith(color: const Color(0xFF65736F)),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _StatItem {
+  const _StatItem(this.label, this.value, this.icon);
+
+  final String label;
+  final String value;
+  final IconData icon;
+}
+
+class _StatGrid extends StatelessWidget {
+  const _StatGrid({required this.items});
+
+  final List<_StatItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: items.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 1.65,
+      ),
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return Card(
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(item.icon, color: Theme.of(context).colorScheme.primary),
+                Text(
+                  item.value,
+                  style: Theme.of(context).textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                Text(
+                  item.label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _DeliveryCard extends StatelessWidget {
+  const _DeliveryCard({required this.delivery});
+
+  final DemoDelivery delivery;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    delivery.baseName,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                _StatusPill(status: delivery.status),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _IconText(icon: Icons.location_on_outlined, text: delivery.address),
+            const SizedBox(height: 6),
+            _IconText(
+              icon: Icons.propane_tank_outlined,
+              text: '${delivery.cylinderCount} tabung',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RequestCard extends StatelessWidget {
+  const _RequestCard({required this.delivery});
+
+  final DemoDelivery delivery;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    delivery.baseName,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                _StatusPill(status: delivery.status),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _IconText(icon: Icons.location_on_outlined, text: delivery.address),
+            const SizedBox(height: 6),
+            _IconText(
+              icon: Icons.propane_tank_outlined,
+              text: '${delivery.cylinderCount} tabung diminta',
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => _showPreviewMessage(context),
+                child: const Text('Tinjau permintaan'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.status});
+
+  final DeliveryStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final isShort = status == DeliveryStatus.kurang;
+    final background = isShort
+        ? const Color(0xFFFFE6E4)
+        : const Color(0xFFE9F4F1);
+    final foreground = isShort
+        ? const Color(0xFF9B1C16)
+        : const Color(0xFF176B61);
+
+    return Semantics(
+      label: 'Status: ${status.label}',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(status.icon, size: 15, color: foreground),
+            const SizedBox(width: 5),
+            Text(
+              status.label,
+              style: TextStyle(
+                color: foreground,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionCard extends StatelessWidget {
+  const _ActionCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onTap,
+      ),
+    );
+  }
+}
+
+class _InfoCard extends StatelessWidget {
+  const _InfoCard({
+    required this.icon,
+    required this.title,
+    required this.message,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+        subtitle: Text(message),
+      ),
+    );
+  }
+}
+
+class _IconText extends StatelessWidget {
+  const _IconText({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: const Color(0xFF65736F)),
+        const SizedBox(width: 7),
+        Expanded(child: Text(text)),
+      ],
+    );
+  }
+}
+
+void _showPreviewMessage(BuildContext context) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Fitur ini masih berupa pratinjau.')),
+  );
+}
