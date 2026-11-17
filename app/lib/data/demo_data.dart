@@ -83,7 +83,8 @@ abstract final class DemoData {
       baseName: 'Pangkalan Simanjuntak',
       address: 'Jl. Mawar No. 12, Bandung',
       cylinderCount: 24,
-      status: DeliveryStatus.dalamPerjalanan,
+      status: DeliveryStatus.menungguDriver,
+      assignedDriverName: 'Budi Santoso',
     ),
     DemoDelivery(
       baseName: 'Pangkalan Sejahtera',

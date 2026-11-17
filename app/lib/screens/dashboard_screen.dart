@@ -10,12 +10,19 @@ class DashboardScreen extends StatelessWidget {
     required this.user,
     required this.onSignOut,
     required this.onRoleSelected,
+    required this.deliveries,
+    required this.onDeliveryAdded,
+    required this.onDeliveryUpdated,
     super.key,
   });
 
   final AppUser user;
   final VoidCallback onSignOut;
   final ValueChanged<UserRole> onRoleSelected;
+  final List<DemoDelivery> deliveries;
+  final ValueChanged<DemoDelivery> onDeliveryAdded;
+  final void Function(DemoDelivery updated, DemoDelivery previous)
+  onDeliveryUpdated;
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +68,13 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 18),
           const _DemoBanner(),
           const SizedBox(height: 24),
-          _RoleDashboard(role: user.role),
+          _RoleDashboard(
+            role: user.role,
+            user: user,
+            deliveries: deliveries,
+            onDeliveryAdded: onDeliveryAdded,
+            onDeliveryUpdated: onDeliveryUpdated,
+          ),
         ],
       ),
     );
@@ -154,24 +167,44 @@ class _DemoBanner extends StatelessWidget {
 }
 
 class _RoleDashboard extends StatelessWidget {
-  const _RoleDashboard({required this.role});
+  const _RoleDashboard({
+    required this.role,
+    required this.user,
+    required this.deliveries,
+    required this.onDeliveryAdded,
+    required this.onDeliveryUpdated,
+  });
 
   final UserRole role;
+  final AppUser user;
+  final List<DemoDelivery> deliveries;
+  final ValueChanged<DemoDelivery> onDeliveryAdded;
+  final void Function(DemoDelivery updated, DemoDelivery previous)
+  onDeliveryUpdated;
 
   @override
   Widget build(BuildContext context) {
     return switch (role) {
-      UserRole.admin => const _AdminDashboard(),
-      UserRole.pengawas => const _PengawasDashboard(),
-      UserRole.agen => const _AgenDashboard(),
-      UserRole.driver => const _DriverDashboard(),
-      UserRole.pangkalan => const _PangkalanDashboard(),
+      UserRole.admin => _AdminDashboard(deliveries: deliveries),
+      UserRole.pengawas => _PengawasDashboard(deliveries: deliveries),
+      UserRole.agen => _AgenDashboard(
+        deliveries: deliveries,
+        onDeliveryAdded: onDeliveryAdded,
+      ),
+      UserRole.driver => _DriverDashboard(
+        user: user,
+        deliveries: deliveries,
+        onDeliveryUpdated: onDeliveryUpdated,
+      ),
+      UserRole.pangkalan => _PangkalanDashboard(deliveries: deliveries),
     };
   }
 }
 
 class _AdminDashboard extends StatefulWidget {
-  const _AdminDashboard();
+  const _AdminDashboard({required this.deliveries});
+
+  final List<DemoDelivery> deliveries;
 
   @override
   State<_AdminDashboard> createState() => _AdminDashboardState();
@@ -274,7 +307,7 @@ class _AdminDashboardState extends State<_AdminDashboard> {
         const SizedBox(height: 24),
         const _SectionHeading(title: 'Pengiriman terbaru'),
         const SizedBox(height: 12),
-        for (final delivery in DemoData.deliveries)
+        for (final delivery in widget.deliveries)
           _DeliveryCard(delivery: delivery),
       ],
     );
@@ -282,7 +315,9 @@ class _AdminDashboardState extends State<_AdminDashboard> {
 }
 
 class _PengawasDashboard extends StatelessWidget {
-  const _PengawasDashboard();
+  const _PengawasDashboard({required this.deliveries});
+
+  final List<DemoDelivery> deliveries;
 
   @override
   Widget build(BuildContext context) {
@@ -305,15 +340,20 @@ class _PengawasDashboard extends StatelessWidget {
         const SizedBox(height: 24),
         const _SectionHeading(title: 'Status terkini'),
         const SizedBox(height: 12),
-        for (final delivery in DemoData.deliveries)
-          _DeliveryCard(delivery: delivery),
+        for (final delivery in deliveries) _DeliveryCard(delivery: delivery),
       ],
     );
   }
 }
 
 class _AgenDashboard extends StatefulWidget {
-  const _AgenDashboard();
+  const _AgenDashboard({
+    required this.deliveries,
+    required this.onDeliveryAdded,
+  });
+
+  final List<DemoDelivery> deliveries;
+  final ValueChanged<DemoDelivery> onDeliveryAdded;
 
   @override
   State<_AgenDashboard> createState() => _AgenDashboardState();
@@ -335,15 +375,17 @@ class _AgenDashboardState extends State<_AgenDashboard> {
 
     final index = _requests.indexOf(delivery);
     if (index < 0) return;
+    final assignedDelivery = DemoDelivery(
+      baseName: delivery.baseName,
+      address: delivery.address,
+      cylinderCount: delivery.cylinderCount,
+      status: DeliveryStatus.menungguDriver,
+      assignedDriverName: driver.name,
+    );
     setState(() {
-      _requests[index] = DemoDelivery(
-        baseName: delivery.baseName,
-        address: delivery.address,
-        cylinderCount: delivery.cylinderCount,
-        status: DeliveryStatus.menungguDriver,
-        assignedDriverName: driver.name,
-      );
+      _requests[index] = assignedDelivery;
     });
+    widget.onDeliveryAdded(assignedDelivery);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -504,80 +546,271 @@ class _RequestReviewDialogState extends State<_RequestReviewDialog> {
   }
 }
 
-class _DriverDashboard extends StatelessWidget {
-  const _DriverDashboard();
+class _DriverDashboard extends StatefulWidget {
+  const _DriverDashboard({
+    required this.user,
+    required this.deliveries,
+    required this.onDeliveryUpdated,
+  });
+
+  final AppUser user;
+  final List<DemoDelivery> deliveries;
+  final void Function(DemoDelivery updated, DemoDelivery previous)
+  onDeliveryUpdated;
+
+  @override
+  State<_DriverDashboard> createState() => _DriverDashboardState();
+}
+
+class _DriverDashboardState extends State<_DriverDashboard> {
+  List<DemoDelivery> get _myAssignments => widget.deliveries
+      .where((delivery) => delivery.assignedDriverName == widget.user.name)
+      .toList();
+
+  void _acceptAssignment(DemoDelivery delivery) {
+    if (delivery.assignedDriverName != widget.user.name ||
+        delivery.status != DeliveryStatus.menungguDriver) {
+      return;
+    }
+
+    final updatedDelivery = DemoDelivery(
+      baseName: delivery.baseName,
+      address: delivery.address,
+      cylinderCount: delivery.cylinderCount,
+      status: DeliveryStatus.dalamPerjalanan,
+      receivedCylinderCount: delivery.receivedCylinderCount,
+      pricePerCylinder: delivery.pricePerCylinder,
+      assignedDriverName: delivery.assignedDriverName,
+    );
+    widget.onDeliveryUpdated(updatedDelivery, delivery);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Demo: penugasan diterima. Status menjadi Dalam perjalanan; '
+          'perubahan belum disimpan.',
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final assignment = DemoData.deliveries.first;
+    final matchingDrivers = DemoData.drivers.where(
+      (driver) => driver.username == widget.user.username,
+    );
+    final driverProfile = matchingDrivers.isEmpty
+        ? null
+        : matchingDrivers.first;
+    final myAssignments = _myAssignments;
+    final waitingForAcceptance = myAssignments
+        .where((delivery) => delivery.status == DeliveryStatus.menungguDriver)
+        .length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _DriverProfileCard(user: widget.user, driver: driverProfile),
+        const SizedBox(height: 20),
         const _SectionHeading(
-          title: 'Penugasan saya',
-          subtitle: 'Informasi pengiriman untuk Driver.',
+          title: 'Ringkasan penugasan',
+          subtitle: 'Anda dapat melihat seluruh pengiriman.',
         ),
         const SizedBox(height: 14),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        'Pengiriman aktif',
-                        style: TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                    _StatusPill(status: assignment.status),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  assignment.baseName,
-                  style: Theme.of(context).textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 6),
-                _IconText(
-                  icon: Icons.location_on_outlined,
-                  text: assignment.address,
-                ),
-                const SizedBox(height: 12),
-                _IconText(
-                  icon: Icons.propane_tank_outlined,
-                  text: '${assignment.cylinderCount} tabung',
-                ),
-                const SizedBox(height: 18),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () => _showPreviewMessage(context),
-                    icon: const Icon(Icons.assignment_turned_in_outlined),
-                    label: const Text('Lihat detail penugasan'),
-                  ),
-                ),
-              ],
+        _StatGrid(
+          items: [
+            _StatItem(
+              'Penugasan untuk saya',
+              '${myAssignments.length}',
+              Icons.assignment_outlined,
             ),
-          ),
+            _StatItem(
+              'Perlu diterima',
+              '$waitingForAcceptance',
+              Icons.move_to_inbox_outlined,
+            ),
+            _StatItem(
+              'Semua pengiriman',
+              '${widget.deliveries.length}',
+              Icons.local_shipping_outlined,
+            ),
+            const _StatItem('Hak akses', 'Lihat', Icons.visibility_outlined),
+          ],
         ),
-        const SizedBox(height: 18),
-        const _InfoCard(
-          icon: Icons.photo_camera_front_outlined,
-          title: 'Foto profil Driver',
-          message: 'Foto belum tersedia. Ilustrasi ikon bawaan ditampilkan sementara.',
+        const SizedBox(height: 24),
+        const _SectionHeading(
+          title: 'Penugasan saya',
+          subtitle:
+              'Hanya penugasan yang dikirim kepada Anda yang dapat diterima.',
         ),
+        const SizedBox(height: 12),
+        if (myAssignments.isEmpty)
+          const _InfoCard(
+            icon: Icons.inbox_outlined,
+            title: 'Belum ada penugasan',
+            message: 'Penugasan baru akan muncul di bagian ini.',
+          )
+        else
+          for (final assignment in myAssignments)
+            _DriverAssignmentCard(
+              delivery: assignment,
+              onAccept: () => _acceptAssignment(assignment),
+            ),
+        const SizedBox(height: 24),
+        const _SectionHeading(
+          title: 'Semua pengiriman',
+          subtitle: 'Informasi pengiriman bersifat baca saja.',
+        ),
+        const SizedBox(height: 12),
+        for (final delivery in widget.deliveries)
+          _DeliveryCard(delivery: delivery),
       ],
     );
   }
 }
 
+class _DriverProfileCard extends StatelessWidget {
+  const _DriverProfileCard({required this.user, required this.driver});
+
+  final AppUser user;
+  final DemoDriver? driver;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            _DriverProfileAvatar(photoUrl: driver?.photoUrl ?? ''),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user.name,
+                    style: Theme.of(context).textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 4),
+                  const _IconText(
+                    icon: Icons.local_shipping_outlined,
+                    text: 'Akun pengemudi',
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    driver?.photoUrl.isNotEmpty == true
+                        ? 'Foto profil Driver'
+                        : 'Foto belum tersedia · ilustrasi bawaan',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DriverProfileAvatar extends StatelessWidget {
+  const _DriverProfileAvatar({required this.photoUrl});
+
+  final String photoUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    const size = 58.0;
+    final fallback = Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Theme.of(context).colorScheme.primaryContainer,
+      ),
+      child: Icon(
+        Icons.local_shipping_outlined,
+        color: Theme.of(context).colorScheme.onPrimaryContainer,
+        size: 30,
+      ),
+    );
+    if (photoUrl.isEmpty) return fallback;
+
+    return ClipOval(
+      child: Image.network(
+        photoUrl,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => fallback,
+      ),
+    );
+  }
+}
+
+class _DriverAssignmentCard extends StatelessWidget {
+  const _DriverAssignmentCard({required this.delivery, required this.onAccept});
+
+  final DemoDelivery delivery;
+  final VoidCallback onAccept;
+
+  @override
+  Widget build(BuildContext context) {
+    final needsAcceptance = delivery.status == DeliveryStatus.menungguDriver;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    delivery.baseName,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                _StatusPill(status: delivery.status),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _IconText(icon: Icons.location_on_outlined, text: delivery.address),
+            const SizedBox(height: 6),
+            _IconText(
+              icon: Icons.propane_tank_outlined,
+              text: '${delivery.cylinderCount} tabung',
+            ),
+            const SizedBox(height: 14),
+            if (needsAcceptance)
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  key: const ValueKey('accept-driver-assignment'),
+                  onPressed: onAccept,
+                  icon: const Icon(Icons.play_arrow),
+                  label: const Text('Terima penugasan'),
+                ),
+              )
+            else
+              const _IconText(
+                icon: Icons.info_outline,
+                text: 'Penugasan sudah diterima. Pengiriman dalam perjalanan.',
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _PangkalanDashboard extends StatelessWidget {
-  const _PangkalanDashboard();
+  const _PangkalanDashboard({required this.deliveries});
+
+  final List<DemoDelivery> deliveries;
 
   @override
   Widget build(BuildContext context) {
@@ -600,8 +833,7 @@ class _PangkalanDashboard extends StatelessWidget {
         const SizedBox(height: 24),
         const _SectionHeading(title: 'Riwayat pengiriman'),
         const SizedBox(height: 12),
-        for (final delivery in DemoData.deliveries)
-          _DeliveryCard(delivery: delivery),
+        for (final delivery in deliveries) _DeliveryCard(delivery: delivery),
       ],
     );
   }
@@ -1117,12 +1349,6 @@ class _IconText extends StatelessWidget {
       ],
     );
   }
-}
-
-void _showPreviewMessage(BuildContext context) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Fitur ini masih berupa pratinjau.')),
-  );
 }
 
 String _formatRupiah(int value) {

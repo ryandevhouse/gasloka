@@ -18,6 +18,7 @@ class GaslokaApp extends StatefulWidget {
 
 class _GaslokaAppState extends State<GaslokaApp> {
   AppUser? _currentUser;
+  late final List<DemoDelivery> _deliveries = List.of(DemoData.deliveries);
 
   void _signInAs(UserRole role) {
     setState(() {
@@ -29,6 +30,16 @@ class _GaslokaAppState extends State<GaslokaApp> {
     setState(() {
       _currentUser = null;
     });
+  }
+
+  void _addDelivery(DemoDelivery delivery) {
+    setState(() => _deliveries.add(delivery));
+  }
+
+  void _updateDelivery(DemoDelivery updatedDelivery, DemoDelivery previous) {
+    final index = _deliveries.indexOf(previous);
+    if (index < 0) return;
+    setState(() => _deliveries[index] = updatedDelivery);
   }
 
   @override
@@ -69,6 +80,9 @@ class _GaslokaAppState extends State<GaslokaApp> {
               user: _currentUser!,
               onSignOut: _signOut,
               onRoleSelected: _signInAs,
+              deliveries: _deliveries,
+              onDeliveryAdded: _addDelivery,
+              onDeliveryUpdated: _updateDelivery,
             ),
     );
   }

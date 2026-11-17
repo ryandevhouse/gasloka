@@ -48,6 +48,49 @@ void main() {
     expect(find.text('Ringkasan operasional'), findsOneWidget);
   });
 
+  testWidgets(
+    'Driver menerima penugasan sendiri dan melihat semua pengiriman',
+    (tester) async {
+      _useTallViewport(tester);
+      await tester.pumpWidget(const GaslokaApp());
+      await tester.tap(find.byKey(const ValueKey('login-role')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Driver').last);
+      await tester.pumpAndSettle();
+      await _signInDemo(tester, username: 'driver.demo');
+
+      expect(find.text('Halo, Budi Santoso'), findsOneWidget);
+      expect(
+        find.text('Foto belum tersedia · ilustrasi bawaan'),
+        findsOneWidget,
+      );
+      expect(find.text('Pangkalan Sejahtera'), findsOneWidget);
+      expect(find.text('Pangkalan Cempaka'), findsOneWidget);
+      expect(find.text('Terima penugasan'), findsOneWidget);
+
+      final acceptButton = find.byKey(
+        const ValueKey('accept-driver-assignment'),
+      );
+      await tester.ensureVisible(acceptButton);
+      await tester.tap(acceptButton);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Terima penugasan'), findsNothing);
+      expect(
+        find.text('Penugasan sudah diterima. Pengiriman dalam perjalanan.'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining(
+          'Demo: penugasan diterima. Status menjadi Dalam perjalanan',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Pangkalan Sejahtera'), findsOneWidget);
+      expect(find.text('Pangkalan Cempaka'), findsOneWidget);
+    },
+  );
+
   testWidgets('status Kurang diberi label dan penanda visual', (tester) async {
     await tester.pumpWidget(const GaslokaApp());
     await _signInDemo(tester);
@@ -292,6 +335,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Detail Penugasan'), findsOneWidget);
     expect(find.text('Driver: Budi Santoso'), findsOneWidget);
+    await tester.tap(find.text('Tutup'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Ganti peran contoh'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Driver').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pangkalan Simanjuntak'), findsNWidgets(4));
+    expect(find.text('Terima penugasan'), findsNWidgets(2));
   });
 }
 
