@@ -51,20 +51,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 800));
     expect(find.byKey(const ValueKey('login-reveal-transition')), findsNothing);
     expect(find.text('Halo, Siti'), findsOneWidget);
-
-    final lateDashboardElement = find.byKey(
-      const ValueKey('dashboard-element-14'),
-    );
-    expect(
-      tester.widget<FadeTransition>(lateDashboardElement).opacity.value,
-      0,
-    );
-
-    await tester.pumpAndSettle();
-    expect(
-      tester.widget<FadeTransition>(lateDashboardElement).opacity.value,
-      1,
-    );
   });
 
   testWidgets('pemilih demo menampilkan dashboard setiap role', (tester) async {

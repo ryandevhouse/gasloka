@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:material_ui/material_ui.dart';
 
 import '../data/demo_data.dart';
@@ -61,15 +59,9 @@ class DashboardScreen extends StatelessWidget {
         body: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
-            _DashboardEntrance(
-              delay: Duration.zero,
-              child: _UserWelcome(user: user),
-            ),
+            _UserWelcome(user: user),
             const SizedBox(height: 18),
-            _DashboardEntrance(
-              delay: const Duration(milliseconds: 80),
-              child: const _DemoBanner(),
-            ),
+            const _DemoBanner(),
             const SizedBox(height: 24),
             _RoleDashboard(
               role: user.role,
@@ -80,135 +72,6 @@ class DashboardScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _StaggeredDashboardColumn extends StatefulWidget {
-  const _StaggeredDashboardColumn({
-    required this.children,
-    this.crossAxisAlignment = CrossAxisAlignment.center,
-  });
-
-  final List<Widget> children;
-  final CrossAxisAlignment crossAxisAlignment;
-
-  @override
-  State<_StaggeredDashboardColumn> createState() =>
-      _StaggeredDashboardColumnState();
-}
-
-class _StaggeredDashboardColumnState extends State<_StaggeredDashboardColumn>
-    with SingleTickerProviderStateMixin {
-  static const _itemDelay = Duration(milliseconds: 65);
-  static const _itemDuration = Duration(milliseconds: 480);
-  late final AnimationController _controller;
-  late final List<CurvedAnimation> _itemAnimations;
-
-  @override
-  void initState() {
-    super.initState();
-    final totalDuration =
-        _itemDuration + _itemDelay * (widget.children.length - 1);
-    _controller = AnimationController(vsync: this, duration: totalDuration)
-      ..forward();
-    final totalMilliseconds = totalDuration.inMilliseconds;
-    _itemAnimations = List.generate(widget.children.length, (index) {
-      final begin = (_itemDelay.inMilliseconds * index) / totalMilliseconds;
-      final end =
-          ((_itemDelay.inMilliseconds * index) + _itemDuration.inMilliseconds) /
-          totalMilliseconds;
-      return CurvedAnimation(
-        parent: _controller,
-        curve: Interval(begin, end, curve: Curves.easeOut),
-      );
-    });
-  }
-
-  @override
-  void dispose() {
-    for (final animation in _itemAnimations) {
-      animation.dispose();
-    }
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: widget.crossAxisAlignment,
-      children: [
-        for (var index = 0; index < widget.children.length; index++)
-          FadeTransition(
-            key: ValueKey('dashboard-element-$index'),
-            opacity: _itemAnimations[index],
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.08),
-                end: Offset.zero,
-              ).animate(_itemAnimations[index]),
-              child: widget.children[index],
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _DashboardEntrance extends StatefulWidget {
-  const _DashboardEntrance({
-    required this.child,
-    required this.delay,
-    super.key,
-  });
-
-  final Widget child;
-  final Duration delay;
-
-  @override
-  State<_DashboardEntrance> createState() => _DashboardEntranceState();
-}
-
-class _DashboardEntranceState extends State<_DashboardEntrance>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  Timer? _delayTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 480),
-    );
-    if (widget.delay == Duration.zero) {
-      _controller.forward();
-    } else {
-      _delayTimer = Timer(widget.delay, () {
-        if (mounted) _controller.forward();
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _delayTimer?.cancel();
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-      child: SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0, 0.08),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut)),
-        child: widget.child,
       ),
     );
   }
@@ -387,7 +250,7 @@ class _AdminDashboardState extends State<_AdminDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    return _StaggeredDashboardColumn(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _SectionHeading(
@@ -454,7 +317,7 @@ class _PengawasDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _StaggeredDashboardColumn(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _SectionHeading(
@@ -530,7 +393,7 @@ class _AgenDashboardState extends State<_AgenDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    return _StaggeredDashboardColumn(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _SectionHeading(
@@ -739,7 +602,7 @@ class _DriverDashboardState extends State<_DriverDashboard> {
         .where((delivery) => delivery.status == DeliveryStatus.menungguDriver)
         .length;
 
-    return _StaggeredDashboardColumn(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _DriverProfileCard(user: widget.user, driver: driverProfile),
@@ -947,7 +810,7 @@ class _PangkalanDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _StaggeredDashboardColumn(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _SectionHeading(
@@ -1123,30 +986,27 @@ class _StatGrid extends StatelessWidget {
       ),
       itemBuilder: (context, index) {
         final item = items[index];
-        return _DashboardEntrance(
-          delay: Duration(milliseconds: index * 55),
-          child: Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Icon(item.icon, color: Theme.of(context).colorScheme.primary),
-                  Text(
-                    item.value,
-                    style: Theme.of(context).textTheme.headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.w800),
-                  ),
-                  Text(
-                    item.label,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-              ),
+        return Card(
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(item.icon, color: Theme.of(context).colorScheme.primary),
+                Text(
+                  item.value,
+                  style: Theme.of(context).textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                Text(
+                  item.label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
             ),
           ),
         );
