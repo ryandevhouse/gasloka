@@ -55,14 +55,16 @@ void main() {
     final lateDashboardElement = find.byKey(
       const ValueKey('dashboard-element-14'),
     );
-    final lateElementFade = find.descendant(
-      of: lateDashboardElement,
-      matching: find.byType(FadeTransition),
+    expect(
+      tester.widget<FadeTransition>(lateDashboardElement).opacity.value,
+      0,
     );
-    expect(tester.widget<FadeTransition>(lateElementFade).opacity.value, 0);
 
-    await tester.pump(const Duration(milliseconds: 1500));
-    expect(tester.widget<FadeTransition>(lateElementFade).opacity.value, 1);
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<FadeTransition>(lateDashboardElement).opacity.value,
+      1,
+    );
   });
 
   testWidgets('pemilih demo menampilkan dashboard setiap role', (tester) async {

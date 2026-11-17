@@ -85,7 +85,7 @@ class DashboardScreen extends StatelessWidget {
   }
 }
 
-class _StaggeredDashboardColumn extends StatelessWidget {
+class _StaggeredDashboardColumn extends StatefulWidget {
   const _StaggeredDashboardColumn({
     required this.children,
     this.crossAxisAlignment = CrossAxisAlignment.center,
@@ -95,15 +95,62 @@ class _StaggeredDashboardColumn extends StatelessWidget {
   final CrossAxisAlignment crossAxisAlignment;
 
   @override
+  State<_StaggeredDashboardColumn> createState() =>
+      _StaggeredDashboardColumnState();
+}
+
+class _StaggeredDashboardColumnState extends State<_StaggeredDashboardColumn>
+    with SingleTickerProviderStateMixin {
+  static const _itemDelay = Duration(milliseconds: 65);
+  static const _itemDuration = Duration(milliseconds: 480);
+  late final AnimationController _controller;
+  late final List<CurvedAnimation> _itemAnimations;
+
+  @override
+  void initState() {
+    super.initState();
+    final totalDuration =
+        _itemDuration + _itemDelay * (widget.children.length - 1);
+    _controller = AnimationController(vsync: this, duration: totalDuration)
+      ..forward();
+    final totalMilliseconds = totalDuration.inMilliseconds;
+    _itemAnimations = List.generate(widget.children.length, (index) {
+      final begin = (_itemDelay.inMilliseconds * index) / totalMilliseconds;
+      final end =
+          ((_itemDelay.inMilliseconds * index) + _itemDuration.inMilliseconds) /
+          totalMilliseconds;
+      return CurvedAnimation(
+        parent: _controller,
+        curve: Interval(begin, end, curve: Curves.easeOut),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    for (final animation in _itemAnimations) {
+      animation.dispose();
+    }
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: crossAxisAlignment,
+      crossAxisAlignment: widget.crossAxisAlignment,
       children: [
-        for (var index = 0; index < children.length; index++)
-          _DashboardEntrance(
+        for (var index = 0; index < widget.children.length; index++)
+          FadeTransition(
             key: ValueKey('dashboard-element-$index'),
-            delay: Duration(milliseconds: index * 65),
-            child: children[index],
+            opacity: _itemAnimations[index],
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.08),
+                end: Offset.zero,
+              ).animate(_itemAnimations[index]),
+              child: widget.children[index],
+            ),
           ),
       ],
     );
@@ -1076,27 +1123,30 @@ class _StatGrid extends StatelessWidget {
       ),
       itemBuilder: (context, index) {
         final item = items[index];
-        return Card(
-          margin: EdgeInsets.zero,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Icon(item.icon, color: Theme.of(context).colorScheme.primary),
-                Text(
-                  item.value,
-                  style: Theme.of(context).textTheme.headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.w800),
-                ),
-                Text(
-                  item.label,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
+        return _DashboardEntrance(
+          delay: Duration(milliseconds: index * 55),
+          child: Card(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Icon(item.icon, color: Theme.of(context).colorScheme.primary),
+                  Text(
+                    item.value,
+                    style: Theme.of(context).textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.w800),
+                  ),
+                  Text(
+                    item.label,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
             ),
           ),
         );
