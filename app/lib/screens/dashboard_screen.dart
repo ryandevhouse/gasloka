@@ -367,7 +367,7 @@ class _PangkalanDashboard extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           child: FilledButton.icon(
-            onPressed: () => _showPreviewMessage(context),
+            onPressed: () => _showRequestDialog(context),
             icon: const Icon(Icons.add),
             label: const Text('Buat permintaan pengiriman'),
           ),
@@ -377,6 +377,101 @@ class _PangkalanDashboard extends StatelessWidget {
         const SizedBox(height: 12),
         for (final delivery in DemoData.deliveries)
           _DeliveryCard(delivery: delivery),
+      ],
+    );
+  }
+}
+
+Future<void> _showRequestDialog(BuildContext context) async {
+  final cylinderCount = await showDialog<int>(
+    context: context,
+    builder: (context) => const _RequestDeliveryDialog(),
+  );
+  if (cylinderCount == null || !context.mounted) return;
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        'Demo: formulir permintaan $cylinderCount tabung selesai. '
+        'Data belum disimpan.',
+      ),
+    ),
+  );
+}
+
+class _RequestDeliveryDialog extends StatefulWidget {
+  const _RequestDeliveryDialog();
+
+  @override
+  State<_RequestDeliveryDialog> createState() => _RequestDeliveryDialogState();
+}
+
+class _RequestDeliveryDialogState extends State<_RequestDeliveryDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _cylinderCountController = TextEditingController();
+
+  @override
+  void dispose() {
+    _cylinderCountController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    Navigator.of(context).pop(int.parse(_cylinderCountController.text.trim()));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      scrollable: true,
+      title: const Text('Form Permintaan Tabung'),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Masukkan jumlah tabung yang dibutuhkan.'),
+              const SizedBox(height: 16),
+              TextFormField(
+                key: const ValueKey('request-cylinder-count'),
+                controller: _cylinderCountController,
+                autofocus: true,
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _submit(),
+                decoration: const InputDecoration(
+                  labelText: 'Jumlah tabung',
+                  hintText: 'Contoh: 12',
+                  prefixIcon: Icon(Icons.propane_tank_outlined),
+                ),
+                validator: (value) {
+                  final count = int.tryParse(value?.trim() ?? '');
+                  if (count == null) {
+                    return 'Masukkan jumlah tabung dengan angka.';
+                  }
+                  if (count < 1) return 'Jumlah tabung minimal 1.';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Mode demo: permintaan ini belum disimpan.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Batal'),
+        ),
+        FilledButton(onPressed: _submit, child: const Text('Kirim permintaan')),
       ],
     );
   }

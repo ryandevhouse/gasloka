@@ -55,6 +55,50 @@ void main() {
     expect(find.text('Kurang'), findsOneWidget);
     expect(find.byIcon(Icons.warning_amber_rounded), findsWidgets);
   });
+
+  testWidgets('permintaan Pangkalan membuka form jumlah tabung', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const GaslokaApp());
+    await tester.tap(find.byKey(const ValueKey('login-role')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pangkalan').last);
+    await tester.pumpAndSettle();
+    await _signInDemo(tester);
+
+    await tester.ensureVisible(find.text('Buat permintaan pengiriman'));
+    await tester.tap(find.text('Buat permintaan pengiriman'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Form Permintaan Tabung'), findsOneWidget);
+
+    await tester.tap(find.text('Kirim permintaan'));
+    await tester.pumpAndSettle();
+    expect(find.text('Masukkan jumlah tabung dengan angka.'), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('request-cylinder-count')),
+      '0',
+    );
+    await tester.tap(find.text('Kirim permintaan'));
+    await tester.pumpAndSettle();
+    expect(find.text('Jumlah tabung minimal 1.'), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('request-cylinder-count')),
+      '12',
+    );
+    await tester.tap(find.text('Kirim permintaan'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Form Permintaan Tabung'), findsNothing);
+    expect(
+      find.text(
+        'Demo: formulir permintaan 12 tabung selesai. Data belum disimpan.',
+      ),
+      findsOneWidget,
+    );
+  });
 }
 
 Future<void> _signInDemo(
