@@ -14,7 +14,7 @@ void main() {
 
     await _signInDemo(tester, username: 'admin.demo');
 
-    expect(find.text('Halo, Nadia Putri'), findsOneWidget);
+    expect(find.text('Halo, Siti'), findsOneWidget);
     expect(find.text('Ringkasan operasional'), findsOneWidget);
     expect(find.text('Kelola pengguna'), findsOneWidget);
   });
@@ -132,7 +132,7 @@ void main() {
     await tester.pumpAndSettle();
     await _signInDemo(tester);
 
-    final activeDelivery = find.text('Pangkalan Melati');
+    final activeDelivery = find.text('Pangkalan Simanjuntak');
     await tester.tap(activeDelivery);
     await tester.pumpAndSettle();
 
@@ -206,7 +206,9 @@ void main() {
 
     await tester.tap(find.text('Kelola Pangkalan'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('edit-base-Pangkalan Melati')));
+    await tester.tap(
+      find.byKey(const ValueKey('edit-base-Pangkalan Simanjuntak')),
+    );
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const ValueKey('admin-base-address')),
@@ -282,7 +284,7 @@ void main() {
 
     expect(find.text('Menunggu Driver'), findsOneWidget);
     expect(
-      find.text('Demo: Pangkalan Melati ditugaskan kepada Budi Santoso.'),
+      find.text('Demo: Pangkalan Simanjuntak ditugaskan kepada Budi Santoso.'),
       findsOneWidget,
     );
 
