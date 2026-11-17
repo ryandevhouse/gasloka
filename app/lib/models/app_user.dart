@@ -32,11 +32,18 @@ class AppUser {
   final UserRole role;
 }
 
-enum DeliveryStatus { permintaanBaru, dalamPerjalanan, terkirim, kurang }
+enum DeliveryStatus {
+  permintaanBaru,
+  menungguDriver,
+  dalamPerjalanan,
+  terkirim,
+  kurang,
+}
 
 extension DeliveryStatusPresentation on DeliveryStatus {
   String get label => switch (this) {
     DeliveryStatus.permintaanBaru => 'Permintaan baru',
+    DeliveryStatus.menungguDriver => 'Menunggu Driver',
     DeliveryStatus.dalamPerjalanan => 'Dalam perjalanan',
     DeliveryStatus.terkirim => 'Terkirim',
     DeliveryStatus.kurang => 'Kurang',
@@ -44,6 +51,7 @@ extension DeliveryStatusPresentation on DeliveryStatus {
 
   IconData get icon => switch (this) {
     DeliveryStatus.permintaanBaru => Icons.inbox_outlined,
+    DeliveryStatus.menungguDriver => Icons.person_search_outlined,
     DeliveryStatus.dalamPerjalanan => Icons.local_shipping_outlined,
     DeliveryStatus.terkirim => Icons.check_circle_outline,
     DeliveryStatus.kurang => Icons.warning_amber_rounded,
@@ -58,6 +66,7 @@ class DemoDelivery {
     required this.status,
     this.receivedCylinderCount,
     this.pricePerCylinder = 20000,
+    this.assignedDriverName,
   });
 
   final String baseName;
@@ -66,6 +75,7 @@ class DemoDelivery {
   final DeliveryStatus status;
   final int? receivedCylinderCount;
   final int pricePerCylinder;
+  final String? assignedDriverName;
 
   int get shortageCylinderCount {
     final received = receivedCylinderCount;

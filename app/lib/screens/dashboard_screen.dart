@@ -312,8 +312,46 @@ class _PengawasDashboard extends StatelessWidget {
   }
 }
 
-class _AgenDashboard extends StatelessWidget {
+class _AgenDashboard extends StatefulWidget {
   const _AgenDashboard();
+
+  @override
+  State<_AgenDashboard> createState() => _AgenDashboardState();
+}
+
+class _AgenDashboardState extends State<_AgenDashboard> {
+  late final List<DemoDelivery> _requests = List.of(DemoData.requests);
+  late final List<DemoDriver> _drivers = List.of(
+    DemoData.drivers.where((driver) => driver.available),
+  );
+
+  Future<void> _reviewRequest(DemoDelivery delivery) async {
+    final driver = await showDialog<DemoDriver>(
+      context: context,
+      builder: (context) =>
+          _RequestReviewDialog(delivery: delivery, availableDrivers: _drivers),
+    );
+    if (driver == null || !mounted) return;
+
+    final index = _requests.indexOf(delivery);
+    if (index < 0) return;
+    setState(() {
+      _requests[index] = DemoDelivery(
+        baseName: delivery.baseName,
+        address: delivery.address,
+        cylinderCount: delivery.cylinderCount,
+        status: DeliveryStatus.menungguDriver,
+        assignedDriverName: driver.name,
+      );
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Demo: ${delivery.baseName} ditugaskan kepada ${driver.name}.',
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -325,17 +363,142 @@ class _AgenDashboard extends StatelessWidget {
           subtitle: 'Tinjau permintaan dan siapkan penugasan Driver.',
         ),
         const SizedBox(height: 14),
-        const _StatGrid(
+        _StatGrid(
           items: [
-            _StatItem('Perlu ditinjau', '6', Icons.inbox_outlined),
-            _StatItem('Menunggu Driver', '3', Icons.person_search_outlined),
+            const _StatItem('Perlu ditinjau', '2', Icons.inbox_outlined),
+            _StatItem(
+              'Driver tersedia',
+              '${_drivers.length}',
+              Icons.person_search_outlined,
+            ),
           ],
         ),
         const SizedBox(height: 24),
         const _SectionHeading(title: 'Permintaan terbaru'),
         const SizedBox(height: 12),
-        for (final delivery in DemoData.requests)
-          _RequestCard(delivery: delivery),
+        for (final delivery in _requests)
+          _RequestCard(
+            delivery: delivery,
+            onReview: () => _reviewRequest(delivery),
+          ),
+      ],
+    );
+  }
+}
+
+class _RequestReviewDialog extends StatefulWidget {
+  const _RequestReviewDialog({
+    required this.delivery,
+    required this.availableDrivers,
+  });
+
+  final DemoDelivery delivery;
+  final List<DemoDriver> availableDrivers;
+
+  @override
+  State<_RequestReviewDialog> createState() => _RequestReviewDialogState();
+}
+
+class _RequestReviewDialogState extends State<_RequestReviewDialog> {
+  String? _selectedDriverUsername;
+
+  bool get _isAssigned =>
+      widget.delivery.status == DeliveryStatus.menungguDriver;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.availableDrivers.isNotEmpty) {
+      _selectedDriverUsername = widget.availableDrivers.first.username;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedDriver = widget.availableDrivers
+        .where((driver) => driver.username == _selectedDriverUsername)
+        .firstOrNull;
+
+    return AlertDialog(
+      scrollable: true,
+      title: Text(_isAssigned ? 'Detail Penugasan' : 'Tinjau Permintaan'),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.delivery.baseName,
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            _IconText(
+              icon: Icons.location_on_outlined,
+              text: widget.delivery.address,
+            ),
+            const SizedBox(height: 8),
+            _IconText(
+              icon: Icons.propane_tank_outlined,
+              text: '${widget.delivery.cylinderCount} tabung diminta',
+            ),
+            const SizedBox(height: 12),
+            const _DemoBanner(),
+            const SizedBox(height: 16),
+            if (_isAssigned)
+              _IconText(
+                icon: Icons.local_shipping_outlined,
+                text: 'Driver: ${widget.delivery.assignedDriverName}',
+              )
+            else if (widget.availableDrivers.isEmpty)
+              const _InfoCard(
+                icon: Icons.person_off_outlined,
+                title: 'Belum ada Driver tersedia',
+                message:
+                    'Data Driver demo belum memiliki Driver yang tersedia.',
+              )
+            else
+              DropdownButtonFormField<String>(
+                key: const ValueKey('request-driver-selection'),
+                initialValue: _selectedDriverUsername,
+                decoration: const InputDecoration(
+                  labelText: 'Pilih Driver tersedia',
+                  prefixIcon: Icon(Icons.local_shipping_outlined),
+                ),
+                items: widget.availableDrivers
+                    .map(
+                      (driver) => DropdownMenuItem(
+                        value: driver.username,
+                        child: Text(driver.name),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (username) {
+                  setState(() => _selectedDriverUsername = username);
+                },
+              ),
+            const SizedBox(height: 12),
+            const Text(
+              'Jumlah yang dikirim mengikuti jumlah permintaan.',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(_isAssigned ? 'Tutup' : 'Batal'),
+        ),
+        if (!_isAssigned)
+          FilledButton(
+            key: const ValueKey('accept-request-assignment'),
+            onPressed: selectedDriver == null
+                ? null
+                : () => Navigator.of(context).pop(selectedDriver),
+            child: const Text('Terima & tugaskan Driver'),
+          ),
       ],
     );
   }
@@ -793,9 +956,10 @@ class _DeliveryDetailRow extends StatelessWidget {
 }
 
 class _RequestCard extends StatelessWidget {
-  const _RequestCard({required this.delivery});
+  const _RequestCard({required this.delivery, required this.onReview});
 
   final DemoDelivery delivery;
+  final VoidCallback onReview;
 
   @override
   Widget build(BuildContext context) {
@@ -828,8 +992,12 @@ class _RequestCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: () => _showPreviewMessage(context),
-                child: const Text('Tinjau permintaan'),
+                onPressed: onReview,
+                child: Text(
+                  delivery.status == DeliveryStatus.menungguDriver
+                      ? 'Lihat penugasan'
+                      : 'Tinjau permintaan',
+                ),
               ),
             ),
           ],

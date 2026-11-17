@@ -44,6 +44,9 @@ custom domain (jika dipilih) dapat memerlukan biaya dari registrar domain.
 - Dashboard Admin dapat menambah, mengedit, dan menghapus data contoh pengguna,
   Pangkalan, dan Driver, termasuk role, alamat, ketersediaan, dan URL foto
   Driver. Harga per tabung juga dapat diubah pada sesi demo.
+- Agen dapat meninjau permintaan, melihat jumlah dan alamat, lalu memilih Driver
+  yang tersedia. Jumlah kirim mengikuti jumlah permintaan; setelah diterima,
+  permintaan demo berubah menjadi status Menunggu Driver.
 - Perubahan tersebut hanya tersimpan sementara di tampilan demo dan hilang saat
   sesi dimulai ulang. Belum ada database atau autentikasi; pengaturan password
   hanya menampilkan informasi dan tidak meminta atau menyimpan password.

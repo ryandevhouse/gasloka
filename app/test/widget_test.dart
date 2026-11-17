@@ -250,6 +250,47 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('Agen meninjau permintaan dan menugaskan Driver tersedia', (
+    tester,
+  ) async {
+    _useTallViewport(tester);
+    await tester.pumpWidget(const GaslokaApp());
+    await tester.tap(find.byKey(const ValueKey('login-role')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Agen').last);
+    await tester.pumpAndSettle();
+    await _signInDemo(tester, username: 'agen.demo');
+
+    await tester.tap(find.text('Tinjau permintaan').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tinjau Permintaan'), findsOneWidget);
+    expect(find.text('24 tabung diminta'), findsNWidgets(2));
+    expect(
+      find.text('Jumlah yang dikirim mengikuti jumlah permintaan.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const ValueKey('request-driver-selection')));
+    await tester.pumpAndSettle();
+    expect(find.text('Budi Santoso'), findsNWidgets(2));
+    expect(find.text('Andi Wijaya'), findsNothing);
+    await tester.tap(find.text('Budi Santoso').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('accept-request-assignment')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Menunggu Driver'), findsOneWidget);
+    expect(
+      find.text('Demo: Pangkalan Melati ditugaskan kepada Budi Santoso.'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Lihat penugasan').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Detail Penugasan'), findsOneWidget);
+    expect(find.text('Driver: Budi Santoso'), findsOneWidget);
+  });
 }
 
 void _useTallViewport(WidgetTester tester) {

@@ -64,8 +64,8 @@ Kredensial Admin awal **jangan dimasukkan ke kode, README, GitHub, atau aplikasi
 
 ## Keputusan yang perlu dikonfirmasi
 
-1. Apakah jumlah tabung yang dikirim selalu sama dengan jumlah pesanan, atau Agen dapat menetapkan jumlah kirim yang berbeda?
-2. Apakah foto bukti transfer diunggah Pangkalan (sesuai uraian alur), lalu diperiksa Agen/Admin?
+- **Jumlah kirim Agen:** diputuskan sama dengan jumlah yang diminta Pangkalan.
+- Apakah foto bukti transfer diunggah Pangkalan (sesuai uraian alur), lalu diperiksa Agen/Admin?
 
 ## Tahapan implementasi
 
