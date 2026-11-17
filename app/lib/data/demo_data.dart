@@ -1,6 +1,8 @@
 import '../models/app_user.dart';
 
 abstract final class DemoData {
+  static const standardCylinderPrice = 20000;
+
   static const users = <UserRole, AppUser>{
     UserRole.admin: AppUser(
       name: 'Nadia Putri',
@@ -41,12 +43,14 @@ abstract final class DemoData {
       address: 'Jl. Anggrek No. 8, Bandung',
       cylinderCount: 18,
       status: DeliveryStatus.terkirim,
+      receivedCylinderCount: 18,
     ),
     DemoDelivery(
       baseName: 'Pangkalan Cempaka',
       address: 'Jl. Kenanga No. 5, Cimahi',
       cylinderCount: 20,
       status: DeliveryStatus.kurang,
+      receivedCylinderCount: 18,
     ),
   ];
 

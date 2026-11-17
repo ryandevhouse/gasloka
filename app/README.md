@@ -41,6 +41,8 @@ custom domain (jika dipilih) dapat memerlukan biaya dari registrar domain.
 ## Pratinjau antarmuka
 
 - Layar login dan dashboard menggunakan data contoh lokal.
+- Detail riwayat menampilkan jumlah dikirim/diterima, selisih, dan nilai
+  selisih dengan harga contoh Rp 20.000 per tabung. Harga ini hanya untuk demo.
 - Pilih salah satu dari lima role pada layar login. Dari dashboard, gunakan
   tombol ganti peran untuk melihat tampilan Admin, Pengawas, Agen, Driver, dan
   Pangkalan.

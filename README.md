@@ -48,6 +48,7 @@ Setiap pengiriman setidaknya menyimpan:
 - Status, catatan perubahan status, harga per tabung yang berlaku, serta nilai selisih.
 
 Rumus awal: `selisih = max(jumlah_dikirim - jumlah_diterima, 0)` dan `nilai_selisih = selisih × harga_per_tabung`. Admin menetapkan dan dapat mengubah harga per tabung. Simpan harga yang berlaku pada catatan pengiriman agar perubahan harga di masa depan tidak mengubah laporan lama.
+Harga standar awal yang dikonfirmasi: **Rp 20.000 per tabung**.
 
 ## Koleksi data awal
 

@@ -571,32 +571,160 @@ class _DeliveryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
-      child: Padding(
-        padding: const EdgeInsets.all(15),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => showDialog<void>(
+          context: context,
+          builder: (context) => _DeliveryDetailsDialog(delivery: delivery),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      delivery.baseName,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  _StatusPill(status: delivery.status),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _IconText(
+                icon: Icons.location_on_outlined,
+                text: delivery.address,
+              ),
+              const SizedBox(height: 6),
+              _IconText(
+                icon: Icons.propane_tank_outlined,
+                text: '${delivery.cylinderCount} tabung',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DeliveryDetailsDialog extends StatelessWidget {
+  const _DeliveryDetailsDialog({required this.delivery});
+
+  final DemoDelivery delivery;
+
+  @override
+  Widget build(BuildContext context) {
+    final received = delivery.receivedCylinderCount;
+    final isPending = received == null;
+    final isShort = delivery.shortageCylinderCount > 0;
+    final shortfallValue =
+        delivery.shortageCylinderCount * DemoData.standardCylinderPrice;
+    final shortfallColor = isShort
+        ? const Color(0xFF9B1C16)
+        : Theme.of(context).colorScheme.onSurface;
+
+    return AlertDialog(
+      scrollable: true,
+      title: const Text('Detail Pengiriman'),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    delivery.baseName,
-                    style: const TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
-                _StatusPill(status: delivery.status),
-              ],
+            Text(
+              delivery.baseName,
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w700),
             ),
-            const SizedBox(height: 8),
-            _IconText(icon: Icons.location_on_outlined, text: delivery.address),
-            const SizedBox(height: 6),
-            _IconText(
-              icon: Icons.propane_tank_outlined,
-              text: '${delivery.cylinderCount} tabung',
+            const SizedBox(height: 4),
+            Text(
+              delivery.address,
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: const Color(0xFF65736F)),
+            ),
+            const SizedBox(height: 12),
+            _StatusPill(status: delivery.status),
+            const Divider(height: 24),
+            _DeliveryDetailRow(
+              label: 'Jumlah tabung dikirim',
+              value: '${delivery.cylinderCount} tabung',
+            ),
+            const SizedBox(height: 12),
+            _DeliveryDetailRow(
+              label: 'Jumlah tabung diterima',
+              value: received == null ? 'Belum diterima' : '$received tabung',
+            ),
+            const SizedBox(height: 12),
+            _DeliveryDetailRow(
+              label: 'Selisih jumlah tabung',
+              value: isPending
+                  ? 'Menunggu penerimaan'
+                  : '${delivery.shortageCylinderCount} tabung',
+              valueColor: shortfallColor,
+            ),
+            const Divider(height: 24),
+            _DeliveryDetailRow(
+              label: 'Total harga selisih',
+              value: isPending
+                  ? 'Belum dihitung'
+                  : _formatRupiah(shortfallValue),
+              valueColor: shortfallColor,
+            ),
+            const SizedBox(height: 12),
+            _DeliveryDetailRow(
+              label: 'Harga per tabung',
+              value: _formatRupiah(DemoData.standardCylinderPrice),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Harga contoh Rp 20.000 per tabung. Data demo tidak disimpan.',
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: const Color(0xFF65736F)),
             ),
           ],
         ),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Tutup'),
+        ),
+      ],
+    );
+  }
+}
+
+class _DeliveryDetailRow extends StatelessWidget {
+  const _DeliveryDetailRow({
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
+
+  final String label;
+  final String value;
+  final Color? valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: Text(label)),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: TextStyle(color: valueColor, fontWeight: FontWeight.w700),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -764,4 +892,12 @@ void _showPreviewMessage(BuildContext context) {
   ScaffoldMessenger.of(context).showSnackBar(
     const SnackBar(content: Text('Fitur ini masih berupa pratinjau.')),
   );
+}
+
+String _formatRupiah(int value) {
+  final groupedValue = value.toString().replaceAllMapped(
+    RegExp(r'\B(?=(\d{3})+(?!\d))'),
+    (_) => '.',
+  );
+  return 'Rp $groupedValue';
 }

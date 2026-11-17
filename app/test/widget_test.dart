@@ -99,6 +99,54 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('detail riwayat menghitung harga selisih tabung', (tester) async {
+    _useTallViewport(tester);
+    await tester.pumpWidget(const GaslokaApp());
+    await tester.tap(find.byKey(const ValueKey('login-role')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pangkalan').last);
+    await tester.pumpAndSettle();
+    await _signInDemo(tester);
+
+    final shortageDelivery = find.text('Pangkalan Cempaka');
+    await tester.tap(shortageDelivery);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Detail Pengiriman'), findsOneWidget);
+    expect(find.text('20 tabung'), findsWidgets);
+    expect(find.text('18 tabung'), findsWidgets);
+    expect(find.text('2 tabung'), findsOneWidget);
+    expect(find.text('Rp 40.000'), findsOneWidget);
+    expect(find.text('Rp 20.000'), findsOneWidget);
+  });
+
+  testWidgets('detail pengiriman aktif menandai penerimaan belum ada', (
+    tester,
+  ) async {
+    _useTallViewport(tester);
+    await tester.pumpWidget(const GaslokaApp());
+    await tester.tap(find.byKey(const ValueKey('login-role')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pangkalan').last);
+    await tester.pumpAndSettle();
+    await _signInDemo(tester);
+
+    final activeDelivery = find.text('Pangkalan Melati');
+    await tester.tap(activeDelivery);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Belum diterima'), findsOneWidget);
+    expect(find.text('Menunggu penerimaan'), findsOneWidget);
+    expect(find.text('Belum dihitung'), findsOneWidget);
+  });
+}
+
+void _useTallViewport(WidgetTester tester) {
+  tester.view.physicalSize = const Size(800, 1200);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
 }
 
 Future<void> _signInDemo(

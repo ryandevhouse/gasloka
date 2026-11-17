@@ -56,10 +56,18 @@ class DemoDelivery {
     required this.address,
     required this.cylinderCount,
     required this.status,
+    this.receivedCylinderCount,
   });
 
   final String baseName;
   final String address;
   final int cylinderCount;
   final DeliveryStatus status;
+  final int? receivedCylinderCount;
+
+  int get shortageCylinderCount {
+    final received = receivedCylinderCount;
+    if (received == null || received >= cylinderCount) return 0;
+    return cylinderCount - received;
+  }
 }
