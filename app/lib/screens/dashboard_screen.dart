@@ -9,7 +9,6 @@ class DashboardScreen extends StatelessWidget {
   const DashboardScreen({
     required this.user,
     required this.onSignOut,
-    required this.onRoleSelected,
     required this.deliveries,
     required this.onDeliveryAdded,
     required this.onDeliveryUpdated,
@@ -18,7 +17,6 @@ class DashboardScreen extends StatelessWidget {
 
   final AppUser user;
   final VoidCallback onSignOut;
-  final ValueChanged<UserRole> onRoleSelected;
   final List<DemoDelivery> deliveries;
   final ValueChanged<DemoDelivery> onDeliveryAdded;
   final void Function(DemoDelivery updated, DemoDelivery previous)
@@ -33,26 +31,6 @@ class DashboardScreen extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
         actions: [
-          PopupMenuButton<UserRole>(
-            tooltip: 'Ganti peran contoh',
-            icon: const Icon(Icons.swap_horiz),
-            onSelected: onRoleSelected,
-            itemBuilder: (context) => UserRole.values
-                .map(
-                  (role) => PopupMenuItem(
-                    key: ValueKey('role-option-${role.name}'),
-                    value: role,
-                    child: Row(
-                      children: [
-                        Icon(role.icon, size: 20),
-                        const SizedBox(width: 10),
-                        Text(role.label),
-                      ],
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
           IconButton(
             tooltip: 'Keluar dari demo',
             onPressed: onSignOut,

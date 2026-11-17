@@ -23,12 +23,6 @@ class _GaslokaAppState extends State<GaslokaApp> {
   late final List<DemoDelivery> _deliveries = List.of(DemoData.deliveries);
   final _loginScreenKey = GlobalKey();
 
-  void _signInAs(UserRole role) {
-    setState(() {
-      _currentUser = DemoData.users[role];
-    });
-  }
-
   void _beginLogin(UserRole role) {
     final user = DemoData.users[role];
     if (user == null) {
@@ -119,7 +113,6 @@ class _GaslokaAppState extends State<GaslokaApp> {
     return DashboardScreen(
       user: user,
       onSignOut: _signOut,
-      onRoleSelected: _signInAs,
       deliveries: _deliveries,
       onDeliveryAdded: _addDelivery,
       onDeliveryUpdated: _updateDelivery,

@@ -55,31 +55,28 @@ void main() {
 
   testWidgets('pemilih demo menampilkan dashboard setiap role', (tester) async {
     await tester.pumpWidget(const GaslokaApp());
-    await _signInDemo(tester);
 
     final roleViews = <(String, String)>[
+      ('Admin', 'Ringkasan operasional'),
       ('Pengawas', 'Pemantauan pengiriman'),
       ('Agen', 'Permintaan Pangkalan'),
       ('Driver', 'Penugasan saya'),
       ('Pangkalan', 'Pengiriman Pangkalan'),
     ];
 
-    for (final (role, dashboardTitle) in roleViews) {
-      await tester.tap(find.byTooltip('Ganti peran contoh'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(role).last);
-      await tester.pumpAndSettle();
+    for (var index = 0; index < roleViews.length; index++) {
+      if (index > 0) {
+        await tester.tap(find.byTooltip('Keluar dari demo'));
+        await tester.pumpAndSettle();
+      }
+      final (role, dashboardTitle) = roleViews[index];
+      await _selectLoginRole(tester, role);
+      await _signInDemo(tester);
 
       expect(find.text(role), findsOneWidget);
       expect(find.text(dashboardTitle), findsOneWidget);
+      expect(find.byTooltip('Ganti peran contoh'), findsNothing);
     }
-
-    await tester.tap(find.byTooltip('Ganti peran contoh'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Admin').last);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Ringkasan operasional'), findsOneWidget);
   });
 
   testWidgets(
@@ -372,10 +369,10 @@ void main() {
     await tester.tap(find.text('Tutup'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Ganti peran contoh'));
+    await tester.tap(find.byTooltip('Keluar dari demo'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Driver').last);
-    await tester.pumpAndSettle();
+    await _selectLoginRole(tester, 'Driver');
+    await _signInDemo(tester, username: 'driver.demo');
 
     expect(find.text('Pangkalan Simanjuntak'), findsNWidgets(4));
     expect(find.text('Terima penugasan'), findsNWidgets(2));
@@ -404,5 +401,12 @@ Future<void> _signInDemo(
   final signInButton = find.text('Masuk ke demo');
   await tester.ensureVisible(signInButton);
   await tester.tap(signInButton);
+  await tester.pumpAndSettle();
+}
+
+Future<void> _selectLoginRole(WidgetTester tester, String role) async {
+  await tester.tap(find.byKey(const ValueKey('login-role')));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(role).last);
   await tester.pumpAndSettle();
 }
