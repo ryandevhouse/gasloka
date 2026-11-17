@@ -11,6 +11,14 @@ extension UserRolePresentation on UserRole {
     UserRole.pangkalan => 'Pangkalan',
   };
 
+  Color get accentColor => switch (this) {
+    UserRole.admin => const Color(0xFF198754),
+    UserRole.pengawas => const Color(0xFFA16207),
+    UserRole.agen => const Color(0xFF2563EB),
+    UserRole.driver => const Color(0xFF7E3AF2),
+    UserRole.pangkalan => const Color(0xFFC2410C),
+  };
+
   IconData get icon => switch (this) {
     UserRole.admin => Icons.admin_panel_settings_outlined,
     UserRole.pengawas => Icons.visibility_outlined,

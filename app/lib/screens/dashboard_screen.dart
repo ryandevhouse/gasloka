@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 
 import '../data/demo_data.dart';
@@ -24,36 +26,142 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Gasloka',
-          style: TextStyle(fontWeight: FontWeight.w800),
+    final theme = Theme.of(context);
+    final accentColor = user.role.accentColor;
+    final colorScheme = theme.colorScheme.copyWith(
+      primary: accentColor,
+      onPrimary: Colors.white,
+      primaryContainer: accentColor.withValues(alpha: 0.14),
+      onPrimaryContainer: accentColor,
+    );
+
+    return Theme(
+      data: theme.copyWith(
+        colorScheme: colorScheme,
+        iconTheme: theme.iconTheme.copyWith(color: accentColor),
+        appBarTheme: theme.appBarTheme.copyWith(
+          iconTheme: IconThemeData(color: accentColor),
         ),
-        actions: [
-          IconButton(
-            tooltip: 'Keluar dari demo',
-            onPressed: onSignOut,
-            icon: const Icon(Icons.logout),
-          ),
-          const SizedBox(width: 4),
-        ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-        children: [
-          _UserWelcome(user: user),
-          const SizedBox(height: 18),
-          const _DemoBanner(),
-          const SizedBox(height: 24),
-          _RoleDashboard(
-            role: user.role,
-            user: user,
-            deliveries: deliveries,
-            onDeliveryAdded: onDeliveryAdded,
-            onDeliveryUpdated: onDeliveryUpdated,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Gasloka',
+            style: TextStyle(fontWeight: FontWeight.w800),
           ),
-        ],
+          actions: [
+            IconButton(
+              tooltip: 'Keluar dari demo',
+              onPressed: onSignOut,
+              icon: const Icon(Icons.logout),
+            ),
+            const SizedBox(width: 4),
+          ],
+        ),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+          children: [
+            _DashboardEntrance(
+              delay: Duration.zero,
+              child: _UserWelcome(user: user),
+            ),
+            const SizedBox(height: 18),
+            _DashboardEntrance(
+              delay: const Duration(milliseconds: 80),
+              child: const _DemoBanner(),
+            ),
+            const SizedBox(height: 24),
+            _RoleDashboard(
+              role: user.role,
+              user: user,
+              deliveries: deliveries,
+              onDeliveryAdded: onDeliveryAdded,
+              onDeliveryUpdated: onDeliveryUpdated,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StaggeredDashboardColumn extends StatelessWidget {
+  const _StaggeredDashboardColumn({
+    required this.children,
+    this.crossAxisAlignment = CrossAxisAlignment.center,
+  });
+
+  final List<Widget> children;
+  final CrossAxisAlignment crossAxisAlignment;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: crossAxisAlignment,
+      children: [
+        for (var index = 0; index < children.length; index++)
+          _DashboardEntrance(
+            key: ValueKey('dashboard-element-$index'),
+            delay: Duration(milliseconds: index * 65),
+            child: children[index],
+          ),
+      ],
+    );
+  }
+}
+
+class _DashboardEntrance extends StatefulWidget {
+  const _DashboardEntrance({
+    required this.child,
+    required this.delay,
+    super.key,
+  });
+
+  final Widget child;
+  final Duration delay;
+
+  @override
+  State<_DashboardEntrance> createState() => _DashboardEntranceState();
+}
+
+class _DashboardEntranceState extends State<_DashboardEntrance>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  Timer? _delayTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 480),
+    );
+    if (widget.delay == Duration.zero) {
+      _controller.forward();
+    } else {
+      _delayTimer = Timer(widget.delay, () {
+        if (mounted) _controller.forward();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _delayTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.08),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut)),
+        child: widget.child,
       ),
     );
   }
@@ -232,7 +340,7 @@ class _AdminDashboardState extends State<_AdminDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return _StaggeredDashboardColumn(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _SectionHeading(
@@ -299,7 +407,7 @@ class _PengawasDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return _StaggeredDashboardColumn(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _SectionHeading(
@@ -375,7 +483,7 @@ class _AgenDashboardState extends State<_AgenDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return _StaggeredDashboardColumn(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _SectionHeading(
@@ -584,7 +692,7 @@ class _DriverDashboardState extends State<_DriverDashboard> {
         .where((delivery) => delivery.status == DeliveryStatus.menungguDriver)
         .length;
 
-    return Column(
+    return _StaggeredDashboardColumn(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _DriverProfileCard(user: widget.user, driver: driverProfile),
@@ -792,7 +900,7 @@ class _PangkalanDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return _StaggeredDashboardColumn(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _SectionHeading(

@@ -51,17 +51,29 @@ void main() {
     await tester.pump(const Duration(milliseconds: 800));
     expect(find.byKey(const ValueKey('login-reveal-transition')), findsNothing);
     expect(find.text('Halo, Siti'), findsOneWidget);
+
+    final lateDashboardElement = find.byKey(
+      const ValueKey('dashboard-element-14'),
+    );
+    final lateElementFade = find.descendant(
+      of: lateDashboardElement,
+      matching: find.byType(FadeTransition),
+    );
+    expect(tester.widget<FadeTransition>(lateElementFade).opacity.value, 0);
+
+    await tester.pump(const Duration(milliseconds: 1500));
+    expect(tester.widget<FadeTransition>(lateElementFade).opacity.value, 1);
   });
 
   testWidgets('pemilih demo menampilkan dashboard setiap role', (tester) async {
     await tester.pumpWidget(const GaslokaApp());
 
-    final roleViews = <(String, String)>[
-      ('Admin', 'Ringkasan operasional'),
-      ('Pengawas', 'Pemantauan pengiriman'),
-      ('Agen', 'Permintaan Pangkalan'),
-      ('Driver', 'Penugasan saya'),
-      ('Pangkalan', 'Pengiriman Pangkalan'),
+    final roleViews = <(String, String, Color)>[
+      ('Admin', 'Ringkasan operasional', const Color(0xFF198754)),
+      ('Pengawas', 'Pemantauan pengiriman', const Color(0xFFA16207)),
+      ('Agen', 'Permintaan Pangkalan', const Color(0xFF2563EB)),
+      ('Driver', 'Penugasan saya', const Color(0xFF7E3AF2)),
+      ('Pangkalan', 'Pengiriman Pangkalan', const Color(0xFFC2410C)),
     ];
 
     for (var index = 0; index < roleViews.length; index++) {
@@ -69,13 +81,21 @@ void main() {
         await tester.tap(find.byTooltip('Keluar dari demo'));
         await tester.pumpAndSettle();
       }
-      final (role, dashboardTitle) = roleViews[index];
+      final (role, dashboardTitle, accentColor) = roleViews[index];
       await _selectLoginRole(tester, role);
       await _signInDemo(tester);
 
       expect(find.text(role), findsOneWidget);
       expect(find.text(dashboardTitle), findsOneWidget);
       expect(find.byTooltip('Ganti peran contoh'), findsNothing);
+      final roleName = role.toLowerCase();
+      expect(
+        tester
+            .widget<Text>(find.byKey(ValueKey('current-role-$roleName')))
+            .style
+            ?.color,
+        accentColor,
+      );
     }
   });
 
