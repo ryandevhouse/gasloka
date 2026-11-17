@@ -1,4 +1,5 @@
 import '../models/app_user.dart';
+import '../models/reference_data.dart';
 
 abstract final class DemoData {
   static const standardCylinderPrice = 20000;
@@ -30,6 +31,49 @@ abstract final class DemoData {
       role: UserRole.pangkalan,
     ),
   };
+
+  static const adminUsers = <AppUser>[
+    AppUser(name: 'Nadia Putri', username: 'admin.demo', role: UserRole.admin),
+    AppUser(
+      name: 'Dewi Anggraini',
+      username: 'admin2.demo',
+      role: UserRole.admin,
+    ),
+    AppUser(
+      name: 'Rizky Pratama',
+      username: 'pengawas.demo',
+      role: UserRole.pengawas,
+    ),
+    AppUser(name: 'Sari Wulandari', username: 'agen.demo', role: UserRole.agen),
+    AppUser(
+      name: 'Budi Santoso',
+      username: 'driver.demo',
+      role: UserRole.driver,
+    ),
+    AppUser(
+      name: 'Pangkalan Melati',
+      username: 'pangkalan.demo',
+      role: UserRole.pangkalan,
+    ),
+  ];
+
+  static const bases = <DemoBase>[
+    DemoBase(name: 'Pangkalan Melati', address: 'Jl. Mawar No. 12, Bandung'),
+    DemoBase(
+      name: 'Pangkalan Sejahtera',
+      address: 'Jl. Anggrek No. 8, Bandung',
+    ),
+    DemoBase(name: 'Pangkalan Cempaka', address: 'Jl. Kenanga No. 5, Cimahi'),
+  ];
+
+  static const drivers = <DemoDriver>[
+    DemoDriver(name: 'Budi Santoso', username: 'driver.demo', available: true),
+    DemoDriver(
+      name: 'Andi Wijaya',
+      username: 'driver.andi.demo',
+      available: false,
+    ),
+  ];
 
   static const deliveries = <DemoDelivery>[
     DemoDelivery(

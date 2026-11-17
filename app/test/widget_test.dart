@@ -140,6 +140,116 @@ void main() {
     expect(find.text('Menunggu penerimaan'), findsOneWidget);
     expect(find.text('Belum dihitung'), findsOneWidget);
   });
+
+  testWidgets('Admin dapat mengubah harga untuk data contoh berikutnya', (
+    tester,
+  ) async {
+    _useTallViewport(tester);
+    await tester.pumpWidget(const GaslokaApp());
+    await _signInDemo(tester, username: 'admin.demo');
+
+    await tester.tap(find.text('Harga per tabung'));
+    await tester.pumpAndSettle();
+    expect(find.text('Harga per tabung'), findsNWidgets(2));
+
+    await tester.enterText(
+      find.byKey(const ValueKey('admin-cylinder-price')),
+      '25000',
+    );
+    await tester.tap(find.byKey(const ValueKey('save-cylinder-price')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rp 25.000 · ubah harga berikutnya'), findsOneWidget);
+    expect(find.textContaining('Belum disimpan.'), findsOneWidget);
+  });
+
+  testWidgets('Admin dapat mengubah role pengguna demo', (tester) async {
+    _useTallViewport(tester);
+    await tester.pumpWidget(const GaslokaApp());
+    await _signInDemo(tester, username: 'admin.demo');
+
+    await tester.tap(find.text('Kelola pengguna'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('edit-user-pengawas.demo')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('admin-user-role')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Driver').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('save-demo-user')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('@pengawas.demo · Driver'), findsOneWidget);
+    await tester.tap(
+      find.byKey(const ValueKey('reset-password-pengawas.demo')),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('Kata sandi tidak disimpan di aplikasi demo.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Mengerti'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Simpan data contoh'));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('Data pengguna contoh diperbarui.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Admin dapat mengubah alamat Pangkalan demo', (tester) async {
+    _useTallViewport(tester);
+    await tester.pumpWidget(const GaslokaApp());
+    await _signInDemo(tester, username: 'admin.demo');
+
+    await tester.tap(find.text('Kelola Pangkalan'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('edit-base-Pangkalan Melati')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('admin-base-address')),
+      'Jl. Baru No. 1, Bandung',
+    );
+    await tester.tap(find.byKey(const ValueKey('save-demo-base')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Jl. Baru No. 1, Bandung'), findsOneWidget);
+    await tester.tap(find.text('Simpan data contoh'));
+    await tester.pumpAndSettle();
+    expect(find.text('3 Pangkalan contoh · nama dan alamat'), findsOneWidget);
+  });
+
+  testWidgets('Admin dapat mengatur Driver dan URL foto contoh', (
+    tester,
+  ) async {
+    _useTallViewport(tester);
+    await tester.pumpWidget(const GaslokaApp());
+    await _signInDemo(tester, username: 'admin.demo');
+
+    await tester.tap(find.text('Kelola Driver'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('edit-driver-driver.andi.demo')),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('admin-driver-photo')),
+      'https://example.com/driver.jpg',
+    );
+    await tester.tap(find.byKey(const ValueKey('admin-driver-availability')));
+    await tester.tap(find.byKey(const ValueKey('save-demo-driver')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('@driver.andi.demo · Tersedia'), findsOneWidget);
+    await tester.tap(find.text('Simpan data contoh'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('2 Driver contoh · foto dan ketersediaan'),
+      findsOneWidget,
+    );
+  });
 }
 
 void _useTallViewport(WidgetTester tester) {

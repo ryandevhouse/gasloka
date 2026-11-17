@@ -57,6 +57,7 @@ class DemoDelivery {
     required this.cylinderCount,
     required this.status,
     this.receivedCylinderCount,
+    this.pricePerCylinder = 20000,
   });
 
   final String baseName;
@@ -64,6 +65,7 @@ class DemoDelivery {
   final int cylinderCount;
   final DeliveryStatus status;
   final int? receivedCylinderCount;
+  final int pricePerCylinder;
 
   int get shortageCylinderCount {
     final received = receivedCylinderCount;

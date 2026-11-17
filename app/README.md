@@ -41,6 +41,12 @@ custom domain (jika dipilih) dapat memerlukan biaya dari registrar domain.
 ## Pratinjau antarmuka
 
 - Layar login dan dashboard menggunakan data contoh lokal.
+- Dashboard Admin dapat menambah, mengedit, dan menghapus data contoh pengguna,
+  Pangkalan, dan Driver, termasuk role, alamat, ketersediaan, dan URL foto
+  Driver. Harga per tabung juga dapat diubah pada sesi demo.
+- Perubahan tersebut hanya tersimpan sementara di tampilan demo dan hilang saat
+  sesi dimulai ulang. Belum ada database atau autentikasi; pengaturan password
+  hanya menampilkan informasi dan tidak meminta atau menyimpan password.
 - Detail riwayat menampilkan jumlah dikirim/diterima, selisih, dan nilai
   selisih dengan harga contoh Rp 20.000 per tabung. Harga ini hanya untuk demo.
 - Pilih salah satu dari lima role pada layar login. Dari dashboard, gunakan

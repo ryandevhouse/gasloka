@@ -2,6 +2,8 @@ import 'package:material_ui/material_ui.dart';
 
 import '../data/demo_data.dart';
 import '../models/app_user.dart';
+import '../models/reference_data.dart';
+import 'admin_data_dialogs.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({
@@ -168,8 +170,54 @@ class _RoleDashboard extends StatelessWidget {
   }
 }
 
-class _AdminDashboard extends StatelessWidget {
+class _AdminDashboard extends StatefulWidget {
   const _AdminDashboard();
+
+  @override
+  State<_AdminDashboard> createState() => _AdminDashboardState();
+}
+
+class _AdminDashboardState extends State<_AdminDashboard> {
+  late List<AppUser> _users = List.of(DemoData.adminUsers);
+  late List<DemoBase> _bases = List.of(DemoData.bases);
+  late List<DemoDriver> _drivers = List.of(DemoData.drivers);
+  int _cylinderPrice = DemoData.standardCylinderPrice;
+
+  Future<void> _manageUsers() async {
+    final users = await showUserManagementDialog(context, _users);
+    if (users == null || !mounted) return;
+    setState(() => _users = users);
+    _showSavedMessage('Data pengguna contoh diperbarui.');
+  }
+
+  Future<void> _manageBases() async {
+    final bases = await showBaseManagementDialog(context, _bases);
+    if (bases == null || !mounted) return;
+    setState(() => _bases = bases);
+    _showSavedMessage('Data Pangkalan contoh diperbarui.');
+  }
+
+  Future<void> _manageDrivers() async {
+    final drivers = await showDriverManagementDialog(context, _drivers);
+    if (drivers == null || !mounted) return;
+    setState(() => _drivers = drivers);
+    _showSavedMessage('Data Driver contoh diperbarui.');
+  }
+
+  Future<void> _editCylinderPrice() async {
+    final price = await showCylinderPriceDialog(context, _cylinderPrice);
+    if (price == null || !mounted) return;
+    setState(() => _cylinderPrice = price);
+    _showSavedMessage(
+      'Harga contoh diperbarui menjadi ${_formatRupiah(price)}.',
+    );
+  }
+
+  void _showSavedMessage(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Demo: $message Belum disimpan.')));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -199,15 +247,29 @@ class _AdminDashboard extends StatelessWidget {
         _ActionCard(
           icon: Icons.manage_accounts_outlined,
           title: 'Kelola pengguna',
-          subtitle: 'Admin, Pengawas, Agen, Driver, dan Pangkalan',
-          onTap: () => _showPreviewMessage(context),
+          subtitle: '${_users.length} pengguna contoh · kelola nama dan role',
+          onTap: _manageUsers,
+        ),
+        const SizedBox(height: 10),
+        _ActionCard(
+          icon: Icons.storefront_outlined,
+          title: 'Kelola Pangkalan',
+          subtitle: '${_bases.length} Pangkalan contoh · nama dan alamat',
+          onTap: _manageBases,
+        ),
+        const SizedBox(height: 10),
+        _ActionCard(
+          icon: Icons.local_shipping_outlined,
+          title: 'Kelola Driver',
+          subtitle: '${_drivers.length} Driver contoh · foto dan ketersediaan',
+          onTap: _manageDrivers,
         ),
         const SizedBox(height: 10),
         _ActionCard(
           icon: Icons.price_change_outlined,
           title: 'Harga per tabung',
-          subtitle: 'Pengaturan contoh hanya untuk Admin',
-          onTap: () => _showPreviewMessage(context),
+          subtitle: '${_formatRupiah(_cylinderPrice)} · ubah harga berikutnya',
+          onTap: _editCylinderPrice,
         ),
         const SizedBox(height: 24),
         const _SectionHeading(title: 'Pengiriman terbaru'),
@@ -622,7 +684,7 @@ class _DeliveryDetailsDialog extends StatelessWidget {
     final isPending = received == null;
     final isShort = delivery.shortageCylinderCount > 0;
     final shortfallValue =
-        delivery.shortageCylinderCount * DemoData.standardCylinderPrice;
+        delivery.shortageCylinderCount * delivery.pricePerCylinder;
     final shortfallColor = isShort
         ? const Color(0xFF9B1C16)
         : Theme.of(context).colorScheme.onSurface;
@@ -678,11 +740,12 @@ class _DeliveryDetailsDialog extends StatelessWidget {
             const SizedBox(height: 12),
             _DeliveryDetailRow(
               label: 'Harga per tabung',
-              value: _formatRupiah(DemoData.standardCylinderPrice),
+              value: _formatRupiah(delivery.pricePerCylinder),
             ),
             const SizedBox(height: 16),
             Text(
-              'Harga contoh Rp 20.000 per tabung. Data demo tidak disimpan.',
+              'Harga yang tersimpan untuk pengiriman ini. '
+              'Data demo tidak disimpan.',
               style: Theme.of(context).textTheme.bodySmall
                   ?.copyWith(color: const Color(0xFF65736F)),
             ),
